@@ -12,8 +12,21 @@ class ViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
+        self.setupView()
     }
 
+    private func setupView() {
+        self.setHierarchy()
+        self.setConstraints()
+    }
+    
+    private func setHierarchy() {
+        
+    }
+    
+    private func setConstraints (){
+        
+    }
 
 }
 
