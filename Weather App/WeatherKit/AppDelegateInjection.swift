@@ -6,3 +6,21 @@
 //
 
 import Foundation
+
+protocol AppDelegateInjection {
+    
+    associatedtype DelegateInjected
+    
+    var delegate: DelegateInjected { get }
+    
+    init(delegate: DelegateInjected)
+    
+}
+
+extension AppDelegateInjection {
+    
+    init(delegate: DelegateInjected) {
+        self.init(delegate: delegate)
+    }
+    
+}

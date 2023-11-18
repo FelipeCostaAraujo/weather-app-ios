@@ -6,3 +6,17 @@
 //
 
 import Foundation
+
+protocol AppView {
+    func setupView()
+    
+    func setHierarchy()
+    func setConstraints()
+}
+
+extension AppView {
+    func setupView() {
+        setHierarchy()
+        setConstraints()
+    }
+}

@@ -6,3 +6,11 @@
 //
 
 import Foundation
+
+struct WeatherViewDelegate: AppDelegateInjection {
+    
+    typealias DelegateInjected = WeatherViewController
+    
+    var delegate: DelegateInjected
+    
+}

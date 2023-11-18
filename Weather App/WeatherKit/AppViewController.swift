@@ -5,4 +5,9 @@
 //  Created by Felipe C. Araujo on 18/11/23.
 //
 
-import Foundation
+import UIKit
+
+protocol AppViewController {
+    associatedtype CustomView
+    var customView: CustomView { get set }
+}
