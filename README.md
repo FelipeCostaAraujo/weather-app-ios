@@ -1,7 +1,7 @@
 # Weather App
 ## Curso Desenvolvendo um Aplicativo do Tempo para iOS
 
-- _/ Aulas ministradas por [Attekita Dev](https://github.com/Bullas)_
+- _Aulas ministradas por [Attekita Dev](https://github.com/Bullas)_
 - _Desenvolvido por [Felipe C. Araujo](https://github.com/FelipeCostaAraujo)_
 
 ## Descrição
