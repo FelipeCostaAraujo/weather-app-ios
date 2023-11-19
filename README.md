@@ -32,8 +32,6 @@ open WeatherApp.xcodeproj
 ## Uso do CLLocationManager
 Este aplicativo utiliza o `CLLocationManager` para obter a localização atual do usuário. Isso é feito de forma responsiva e eficiente, parando as atualizações de localização assim que uma localização precisa é obtida. As permissões de localização são solicitadas ao usuário, e a aplicação reage adequadamente às respostas.
 
-O `CLLocationManager` é encapsulado dentro de um `Publisher` personalizado, seguindo o paradigma Combine, para que as atualizações de localização sejam emitidas como eventos que o ViewModel pode assinar e reagir.
-
 ## Como Contribuir
 Contribuições são bem-vindas! Se você tem uma ideia ou sugestão de melhoria, siga estes passos:
 
