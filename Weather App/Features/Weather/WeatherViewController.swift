@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import Combine
 
 class WeatherViewController: UIViewController {
     
@@ -13,41 +14,36 @@ class WeatherViewController: UIViewController {
     typealias CustomView = WeatherView
     
     private var customView: CustomView { view as! CustomView }
+    private let service = WeatherService()
+    private let viewModel:WeatherViewModel!
+    private var cancellables: Set<AnyCancellable> = []
     
     override func loadView() {
         view = CustomView(configuration: WeatherViewDelegate(delegate: self))
     }
     
-    @objc private func retryButtonTapped() {
-        hideError()
-        fetchData()
+    init(viewModel: WeatherViewModel) {
+        self.viewModel = viewModel
+        super.init(nibName: nil, bundle: nil)
     }
     
-    private let service = WeatherService()
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    @objc private func retryButtonTapped() {
+        hideError()
+        viewModel.fetchData()
+    }
+    
     private var city = City(lat: "-23.6814346", lon: "-46.9249599", name: "São Paulo")
     private var forecastResponse: ForecastResponse?
     
     override func viewDidLoad() {
         super.viewDidLoad()
         customView.retryButton.addTarget(self, action: #selector(retryButtonTapped), for: .touchUpInside)
-        fetchData()
-    }
-    
-    private func fetchData() {
-        showLoader()
-        
-        service.fetchData(city: city) { [weak self] result in
-            DispatchQueue.main.async {
-                self?.hideLoader()
-                switch result {
-                case .success(let forecastResponse):
-                    self?.forecastResponse = forecastResponse
-                    self?.loadData()
-                case .failure(let error):
-                    self?.handleError(error)
-                }
-            }
-        }
+        bindViewModel()
+        viewModel.fetchData()
     }
     
     private func handleError(_ error: Error) {
@@ -86,16 +82,15 @@ class WeatherViewController: UIViewController {
         customView.windValueLabel.text = "\(forecastResponse?.current.windSpeed ?? 0)km/h"
         customView.weatherIcon.image = UIImage(named: forecastResponse?.current.weather.first?.icon ?? "")
         
-        
         if forecastResponse?.current.dt.isDayTime() ?? true {
             customView.backgroundView.image = UIImage(named:"background-day")
         } else {
             customView.backgroundView.image = UIImage(named: "background-night")
+            customView.headerView.backgroundColor = .black
         }
         
         customView.hourlyCollectionView.reloadData()
         customView.dailyForecastTableView.reloadData()
-        
         hideLoader()
     }
     
@@ -121,7 +116,7 @@ class WeatherViewController: UIViewController {
         customView.loaderView.isHidden = true
         customView.retryButton.isHidden = true
     }
-
+    
 }
 
 
@@ -166,5 +161,31 @@ extension WeatherViewController: UITableViewDataSource, UITableViewDelegate {
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         60
+    }
+}
+
+//MARK: Data
+extension WeatherViewController {
+    private func bindViewModel() {
+        viewModel.$state
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] state in
+                switch state {
+                case .idle:
+                    break
+                case .loading:
+                    self?.showLoader()
+                    break
+                case .loaded(let forecastResponse):
+                    self?.forecastResponse = forecastResponse
+                    self?.hideLoader()
+                    self?.loadData()
+                    break
+                case .error(let error):
+                    self?.handleError(error)
+                    break
+                }
+            }
+            .store(in: &cancellables)
     }
 }

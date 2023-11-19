@@ -160,7 +160,6 @@ class WeatherView: UIView {
         tableView.translatesAutoresizingMaskIntoConstraints = false
         tableView.backgroundColor = .clear
         tableView.dataSource = configuration.delegate
-        // tableView.delegate = configuration.delegate
         tableView.register(DailyForecastTableViewCell.self,
                            forCellReuseIdentifier: DailyForecastTableViewCell.identifier)
         tableView.separatorColor = UIColor.contrastColor
@@ -207,7 +206,6 @@ class WeatherView: UIView {
     init(configuration: WeatherViewDelegate) {
         self.configuration = configuration
         super.init(frame: .zero)
-        backgroundColor = .white
         setupView()
     }
 }

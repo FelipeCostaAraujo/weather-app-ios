@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Combine
 
 struct City {
     let lat: String
@@ -14,45 +15,36 @@ struct City {
 }
 
 class WeatherService {
-    
     private let baseURL: String = "https://api.openweathermap.org/data/3.0/onecall"
     private let apiKey: String = ""
     private let session = URLSession.shared
     
-    func fetchData(city: City, _ completion: @escaping (Result<ForecastResponse, Error>) -> Void) {
-            let urlString = "\(baseURL)?lat=\(city.lat)&lon=\(city.lon)&appid=\(apiKey)&units=metric"
-            guard let url = URL(string: urlString) else { return }
-            
-            let task = session.dataTask(with: url) { data, response, error in
+    func fetchForecast(city: City) -> Future<ForecastResponse, Error> {
+        let urlString = "\(baseURL)?lat=\(city.lat)&lon=\(city.lon)&appid=\(apiKey)&units=metric"
+        return Future<ForecastResponse, Error> { promise in
+            URLSession.shared.dataTask(with: URL(string: urlString)!) { data, response, error in
                 if let error = error {
-                    completion(.failure(error))
+                    promise(.failure(error))
                     return
                 }
-
                 if let httpResponse = response as? HTTPURLResponse, !(200...299).contains(httpResponse.statusCode) {
-                    completion(.failure(NSError(domain: "", code: httpResponse.statusCode, userInfo: [NSLocalizedDescriptionKey: "Falha na resposta HTTP com status code: \(httpResponse.statusCode)"])))
+                    let httpError = NSError(domain: "", code: httpResponse.statusCode, userInfo: [NSLocalizedDescriptionKey: "Falha na resposta HTTP com status code: \(httpResponse.statusCode)"])
+                    promise(.failure(httpError))
                     return
                 }
-
                 guard let data = data else {
-                    completion(.failure(NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey: "Dados não recebidos"])))
+                    let noDataError = NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey: "Dados não recebidos"])
+                    promise(.failure(noDataError))
                     return
                 }
-                
-                print(data)
-
-                do {
-                    let forecastResponse = try JSONDecoder().decode(ForecastResponse.self, from: data)
-                    completion(.success(forecastResponse))
-                } catch {
-                    print(error)
-                    completion(.failure(error))
+                guard let forecastResponse = try? JSONDecoder().decode(ForecastResponse.self, from: data) else {
+                    promise(.failure(URLError(.badServerResponse)))
+                    return
                 }
-            }
-            
-            task.resume()
+                promise(.success(forecastResponse))
+            }.resume()
         }
-    
+    }
 }
 
 // MARK: - ForecastResponse
@@ -69,7 +61,7 @@ struct Forecast: Codable {
     let humidity: Int
     let windSpeed: Double
     let weather: [Weather]
-
+    
     enum CodingKeys: String, CodingKey {
         case dt, temp, humidity
         case windSpeed = "wind_speed"
