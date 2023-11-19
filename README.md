@@ -1,7 +1,8 @@
 # Weather App
+## Curso Desenvolvendo um Aplicativo do Tempo para iOS
 
-_Curso Desenvolvendo um Aplicativo do Tempo / [Attekita Dev](https://github.com/Bullas)_
-_Desenvolvido por [Felipe C. Araujo](https://github.com/FelipeCostaAraujo) / Felipe Araujo_
+- _/ Aulas ministradas por [Attekita Dev](https://github.com/Bullas)_
+- _Desenvolvido por [Felipe C. Araujo](https://github.com/FelipeCostaAraujo)_
 
 ## Descrição
 O Weather App é uma aplicação iOS que fornece previsões meteorológicas em tempo real. Com uma interface construída em Swift e uma arquitetura robusta MVVM, o aplicativo oferece uma experiência de usuário refinada e desempenho confiável. Ele se integra com a OpenWeatherMap API para fornecer dados meteorológicos precisos com base na localização do usuário, obtida através do CoreLocation.
