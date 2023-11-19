@@ -9,9 +9,9 @@ import Foundation
 import Combine
 
 struct City {
-    let lat: String
-    let lon: String
-    let name: String
+    var lat: String
+    var lon: String
+    var name: String
 }
 
 class WeatherService {
@@ -19,7 +19,7 @@ class WeatherService {
     private let apiKey: String = ""
     private let session = URLSession.shared
     
-    func fetchForecast(city: City) -> Future<ForecastResponse, Error> {
+    func fetchForecast(_ city: City) -> Future<ForecastResponse, Error> {
         let urlString = "\(baseURL)?lat=\(city.lat)&lon=\(city.lon)&appid=\(apiKey)&units=metric"
         return Future<ForecastResponse, Error> { promise in
             URLSession.shared.dataTask(with: URL(string: urlString)!) { data, response, error in

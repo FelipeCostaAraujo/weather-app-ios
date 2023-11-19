@@ -15,19 +15,18 @@ final class WeatherViewModel {
         case error(Error)
     }
     
-    private var city = City(lat: "-23.6814346", lon: "-46.9249599", name: "São Paulo")
-    
-    @Published private(set) var state: State = .idle
+    @Published private(set) var state: State = .loading
     private let weatherService: WeatherService
     private var cancellables = Set<AnyCancellable>()
+    
     
     init(weatherService: WeatherService) {
         self.weatherService = weatherService
     }
     
-    func fetchData() {
+    func fetchData(_ city: City) {
         state = .loading
-        weatherService.fetchForecast(city: city)
+        weatherService.fetchForecast(city)
             .sink(receiveCompletion: { [weak self] completion in
                 switch completion {
                 case .failure(let error):

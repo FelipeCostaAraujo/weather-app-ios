@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import MapKit
 import Combine
 
 class WeatherViewController: UIViewController {
@@ -17,6 +18,9 @@ class WeatherViewController: UIViewController {
     private let service = WeatherService()
     private let viewModel:WeatherViewModel!
     private var cancellables: Set<AnyCancellable> = []
+    private var locationManager = CLLocationManager()
+    private var forecastResponse: ForecastResponse?
+    private var city = City(lat: "0", lon: "0", name: "")
     
     override func loadView() {
         view = CustomView(configuration: WeatherViewDelegate(delegate: self))
@@ -33,45 +37,23 @@ class WeatherViewController: UIViewController {
     
     @objc private func retryButtonTapped() {
         hideError()
-        viewModel.fetchData()
+        viewModel.fetchData(city)
     }
-    
-    private var city = City(lat: "-23.6814346", lon: "-46.9249599", name: "São Paulo")
-    private var forecastResponse: ForecastResponse?
     
     override func viewDidLoad() {
         super.viewDidLoad()
         customView.retryButton.addTarget(self, action: #selector(retryButtonTapped), for: .touchUpInside)
         bindViewModel()
-        viewModel.fetchData()
+        setupLocationManager()
     }
     
-    private func handleError(_ error: Error) {
-        showError()
-        let nsError = error as NSError
-        var message = "Ocorreu um erro ao buscar os dados do tempo."
+    private func setupLocationManager() {
+        locationManager.delegate = self
+        locationManager.desiredAccuracy = kCLLocationAccuracyBest
+        locationManager.requestWhenInUseAuthorization()
+        locationManager.desiredAccuracy = kCLLocationAccuracyThreeKilometers
         
-        if nsError.domain == NSURLErrorDomain {
-            switch nsError.code {
-            case NSURLErrorNotConnectedToInternet:
-                message = "Sem conexão com a internet. Por favor, verifique sua conexão e tente novamente."
-            case NSURLErrorTimedOut:
-                message = "A requisição demorou muito para responder. Por favor, tente novamente mais tarde."
-            default:
-                message = "Erro de conexão: \(nsError.localizedDescription)"
-            }
-        } else {
-            message = "Erro: \(nsError.localizedDescription)"
-        }
-        showAlert(with: message)
-    }
-    
-    private func showAlert(with message: String) {
-        let alert = UIAlertController(title: "Erro", message: message, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "OK", style: .default))
-        DispatchQueue.main.async {
-            self.present(alert, animated: true)
-        }
+        locationManager.startUpdatingLocation()
     }
     
     private func loadData() {
@@ -115,6 +97,50 @@ class WeatherViewController: UIViewController {
     func hideError() {
         customView.loaderView.isHidden = true
         customView.retryButton.isHidden = true
+    }
+    
+    private func handleError(_ error: Error) {
+        showError()
+        let nsError = error as NSError
+        var message = "Ocorreu um erro ao buscar os dados do tempo."
+        
+        if nsError.domain == NSURLErrorDomain {
+            switch nsError.code {
+            case NSURLErrorNotConnectedToInternet:
+                message = "Sem conexão com a internet. Por favor, verifique sua conexão e tente novamente."
+            case NSURLErrorTimedOut:
+                message = "A requisição demorou muito para responder. Por favor, tente novamente mais tarde."
+            default:
+                message = "Erro de conexão: \(nsError.localizedDescription)"
+            }
+        } else {
+            message = "Erro: \(nsError.localizedDescription)"
+        }
+        showAlert(with: message)
+    }
+    
+    //MARK: Alerts
+    private func showAlert(with message: String) {
+        let alert = UIAlertController(title: "Erro", message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        DispatchQueue.main.async {
+            self.present(alert, animated: true)
+        }
+    }
+    
+    func showLocationAlert(){
+        let alertController = UIAlertController(title: "Permissão de localização", message: "Necessario permissão para acesso à sua localizão!! por favir habilite.", preferredStyle: .alert)
+        let acaoConfiguracoes = UIAlertAction(title: "Abrir Configurações", style: .default) { (alertaConfiracoes) in
+            if let configuracoes = NSURL(string: UIApplication.openSettingsURLString){
+                UIApplication.shared.open(configuracoes as URL)
+            }
+        }
+        let acaoCancelar = UIAlertAction(title: "Cancelar", style: .default, handler: nil)
+        
+        alertController.addAction(acaoConfiguracoes)
+        alertController.addAction(acaoCancelar)
+        
+        present(alertController,animated: true,completion: nil)
     }
     
 }
@@ -187,5 +213,47 @@ extension WeatherViewController {
                 }
             }
             .store(in: &cancellables)
+    }
+}
+
+extension WeatherViewController: CLLocationManagerDelegate {
+    
+    func locationManager(_ manager: CLLocationManager, didChangeAuthorization status: CLAuthorizationStatus) {
+        switch status {
+        case .notDetermined:
+            locationManager.requestWhenInUseAuthorization()
+        case .restricted, .denied:
+            showLocationAlert()
+            break
+        case .authorizedWhenInUse, .authorizedAlways:
+            locationManager.startUpdatingLocation()
+        @unknown default:
+            fatalError("Unknown authorization status")
+        }
+    }
+    
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        let localizacaoUsuario: CLLocation = locations.last!
+        
+        let latitude = localizacaoUsuario.coordinate.latitude
+        let longitude = localizacaoUsuario.coordinate.longitude
+        
+        city.lat = String(format: "%f", latitude)
+        city.lon = String(format: "%f", longitude)
+        
+        CLGeocoder().reverseGeocodeLocation(localizacaoUsuario) { [self] (localityDetails, erro) in
+            if erro == nil {
+                if let localityData = localityDetails?.first {
+                    if let locality = localityData.locality {
+                        self.city.name = locality
+                    }
+                }
+                viewModel.fetchData(city)
+                locationManager.stopUpdatingLocation()
+            } else{
+                print("não foi possivel exibir o endereço")
+            }
+        }
+        
     }
 }

@@ -50,11 +50,11 @@ class DailyForecastTableViewCell: UITableViewCell {
         stackView.axis = .horizontal
         stackView.translatesAutoresizingMaskIntoConstraints = false
         stackView.isLayoutMarginsRelativeArrangement = true
-        stackView.directionalLayoutMargins = NSDirectionalEdgeInsets(top: 16,
+        stackView.directionalLayoutMargins = NSDirectionalEdgeInsets(top: 0,
                                                                      leading: 16,
-                                                                     bottom: 16,
+                                                                     bottom: 0,
                                                                      trailing: 16)
-        stackView.spacing = 15
+        stackView.spacing = 5
         return stackView
     }()
     
