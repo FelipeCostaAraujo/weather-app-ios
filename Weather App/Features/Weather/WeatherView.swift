@@ -184,8 +184,6 @@ class WeatherView: UIView {
         config.title = "Tentar Novamente"
         config.baseBackgroundColor = .systemBlue
         config.baseForegroundColor = .white
-        
-        // Ajustar a margem
         config.contentInsets = NSDirectionalEdgeInsets(top: 5, leading: 10, bottom: 5, trailing: 10)
         
         let button = UIButton(configuration: config)

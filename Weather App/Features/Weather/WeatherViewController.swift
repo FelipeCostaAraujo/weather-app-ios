@@ -15,7 +15,6 @@ class WeatherViewController: UIViewController {
     typealias CustomView = WeatherView
     
     private var customView: CustomView { view as! CustomView }
-    private let service = WeatherService()
     private let viewModel:WeatherViewModel!
     private var cancellables: Set<AnyCancellable> = []
     private var locationManager = CLLocationManager()
@@ -49,7 +48,6 @@ class WeatherViewController: UIViewController {
     
     private func setupLocationManager() {
         locationManager.delegate = self
-        locationManager.desiredAccuracy = kCLLocationAccuracyBest
         locationManager.requestWhenInUseAuthorization()
         locationManager.desiredAccuracy = kCLLocationAccuracyThreeKilometers
         
